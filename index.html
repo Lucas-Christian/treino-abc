@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Treino ABC – Mobile</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121821;
+      --muted: #8aa0b8;
+      --text: #e7eef7;
+      --accent: #4da3ff;
+      --accent2: #7ef0d4;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    header h1 { font-size: 20px; margin: 0; }
+    .day-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .day-buttons button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background: var(--accent);
+    }
+    .card {
+      background: var(--panel);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+    .exercise-gif {
+      width: 100%;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .progress {
+      margin: 8px 0;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent2);
+      color: #000;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+    .next-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .next-list li {
+      padding: 8px;
+      border-bottom: 1px solid #1b2431;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Treino ABC</h1>
+    </header>
+
+    <div class="day-buttons">
+      <button onclick="selectDay('A')">Dia A</button>
+      <button onclick="selectDay('B')">Dia B</button>
+      <button onclick="selectDay('C')">Dia C</button>
+    </div>
+
+    <div id="workout"></div>
+  </div>
+
+<script>
+const PROGRAM = {
+  A: {
+    title: "Treino A: Costas, Deltóide Posterior, Bíceps e Antebraço",
+    exercises: [
+      { name: "Puxada frente", reps: 12, sets: 3, rest: "60s", gif: "gifs/puxada-frente.gif" },
+      { name: "Puxada triângulo", reps: 12, sets: 3, rest: "60s", gif: "gifs/puxada-triangulo.gif" },
+      { name: "Rosca Scott", reps: 10, sets: 3, rest: "45s", gif: "gifs/rosca-scott.gif" },
+    ]
+  },
+  B: {
+    title: "Treino B: Peitoral, Deltóide Anterior/Lateral, Tríceps e Abdômen",
+    exercises: [
+      { name: "Supino reto", reps: 12, sets: 3, rest: "90s", gif: "gifs/supino-reto.gif" },
+      { name: "Supino inclinado", reps: 12, sets: 3, rest: "90s", gif: "gifs/supino-inclinado.gif" },
+      { name: "Tríceps pulley", reps: 12, sets: 3, rest: "60s", gif: "gifs/triceps-pulley.gif" },
+    ]
+  },
+  C: {
+    title: "Treino C: Quadríceps, Isquiotibiais e Panturrilhas",
+    exercises: [
+      { name: "Agachamento", reps: 12, sets: 4, rest: "90s", gif: "gifs/agachamento.gif" },
+      { name: "Leg press", reps: 12, sets: 3, rest: "90s", gif: "gifs/leg-press.gif" },
+      { name: "Panturrilha em pé", reps: 15, sets: 4, rest: "45s", gif: "gifs/panturrilha.gif" },
+    ]
+  }
+};
+
+let currentDay = null;
+let currentExerciseIndex = 0;
+let progress = {};
+
+function selectDay(day) {
+  currentDay = day;
+  currentExerciseIndex = 0;
+  progress = {};
+  PROGRAM[day].exercises.forEach((_, i) => progress[i] = 0);
+  renderWorkout();
+}
+
+function addSeries() {
+  const ex = PROGRAM[currentDay].exercises[currentExerciseIndex];
+  if(progress[currentExerciseIndex] < ex.sets) {
+    progress[currentExerciseIndex]++;
+    renderWorkout();
+  } else if(currentExerciseIndex < PROGRAM[currentDay].exercises.length - 1) {
+    currentExerciseIndex++;
+    renderWorkout();
+  }
+}
+
+function renderWorkout() {
+  if(!currentDay) return;
+
+  const day = PROGRAM[currentDay];
+  const ex = day.exercises[currentExerciseIndex];
+
+  const nextExercises = day.exercises.slice(currentExerciseIndex + 1);
+
+  document.getElementById("workout").innerHTML = `
+    <div class="card">
+      <h2>${day.title}</h2>
+      <p><b>Exercício atual:</b> ${ex.name}</p>
+      <p>${ex.reps} repetições | ${ex.sets} séries | Descanso: ${ex.rest}</p>
+      <p class="progress">Séries atual: ${progress[currentExerciseIndex] || 1} / ${ex.sets}</p>
+      <img src="${ex.gif}" alt="${ex.name}" class="exercise-gif"/>
+      <button class="btn" onclick="addSeries()">+1 série</button>
+    </div>
+    <div class="card">
+      <h2>Próximos exercícios</h2>
+      <ul class="next-list">
+        ${nextExercises.map(e => `<li>${e.name} (${e.sets}x${e.reps})</li>`).join("") || "<li>Fim do treino</li>"}
+      </ul>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

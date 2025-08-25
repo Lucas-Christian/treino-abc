@@ -3,193 +3,292 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Treino ABC – Mobile</title>
+  <title>Treino ABC – Mobile (descanso obrigatório)</title>
   <style>
-    :root {
-      --bg: #0b0f14;
-      --panel: #121821;
-      --muted: #8aa0b8;
-      --text: #e7eef7;
-      --accent: #4da3ff;
-      --accent2: #7ef0d4;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 12px;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    header h1 { font-size: 20px; margin: 0; }
-    .day-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .day-buttons button {
-      flex: 1;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-      font-weight: bold;
-      color: #fff;
-      background: var(--accent);
-    }
-    .card {
-      background: var(--panel);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-    .card h2 {
-      margin: 0 0 8px;
-      font-size: 18px;
-    }
-    .exercise-gif {
-      width: 100%;
-      border-radius: 10px;
-      margin: 10px 0;
-    }
-    .progress {
-      margin: 8px 0;
-      font-size: 14px;
-    }
-    .btn {
-      padding: 10px;
-      width: 100%;
-      border: none;
-      border-radius: 8px;
-      background: var(--accent2);
-      color: #000;
-      font-weight: bold;
-      margin-top: 8px;
-    }
-    .next-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .next-list li {
-      padding: 8px;
-      border-bottom: 1px solid #1b2431;
-      font-size: 14px;
-    }
+    :root{--bg:#0b0f14;--panel:#121821;--muted:#8aa0b8;--text:#e7eef7;--accent:#4da3ff;--accent2:#7ef0d4;--danger:#ff6b6b}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:system-ui,Inter,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
+    .container{max-width:480px;margin:0 auto;padding:14px}
+    header{text-align:center;margin-bottom:12px}
+    h1{font-size:20px;margin:0}
+    .day-row{display:flex;gap:8px;margin:12px 0}
+    .day-btn{flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#001;font-weight:700}
+    .card{background:var(--panel);border-radius:12px;padding:14px;margin-bottom:12px}
+    .title{font-size:16px;margin:0 0 6px}
+    .meta{font-size:13px;color:var(--muted);margin-bottom:8px}
+    .exercise-gif{width:100%;height:220px;object-fit:cover;border-radius:10px;background:#081017}
+    .row{display:flex;gap:8px}
+    .btn{flex:1;padding:10px;border-radius:10px;border:none;background:var(--accent2);color:#001;font-weight:700}
+    .btn.secondary{background:transparent;border:1px solid #1d2a36;color:var(--text)}
+    .progress-bar{height:10px;background:#071018;border-radius:999px;overflow:hidden;margin-top:8px}
+    .progress-bar > i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.25s linear}
+    .small{font-size:13px;color:var(--muted)}
+    .list{padding:0;margin:0;list-style:none}
+    .list li{padding:10px;border-top:1px solid #0e1720;font-size:14px}
+    .controls{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .center{text-align:center}
+    .overlay{position:fixed;inset:0;background:rgba(2,6,10,0.6);display:flex;align-items:center;justify-content:center}
+    .modal{background:var(--panel);padding:16px;border-radius:12px;max-width:360px;width:90%}
+    .danger{background:var(--danger);color:#101010}
+    @media (max-width:420px){.exercise-gif{height:180px}}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>Treino ABC</h1>
+      <div class="small">Descanso obrigatório — não pule sem confirmar</div>
     </header>
 
-    <div class="day-buttons">
-      <button onclick="selectDay('A')">Dia A</button>
-      <button onclick="selectDay('B')">Dia B</button>
-      <button onclick="selectDay('C')">Dia C</button>
+    <div class="day-row">
+      <button class="day-btn" onclick="selectDay('A')">Dia A</button>
+      <button class="day-btn" onclick="selectDay('B')">Dia B</button>
+      <button class="day-btn" onclick="selectDay('C')">Dia C</button>
     </div>
 
     <div id="workout"></div>
   </div>
 
+  <div id="modalRoot" style="display:none"></div>
+
 <script>
+// ====== Programa (ajuste os GIFs para o GitHub Pages) ======
 const PROGRAM = {
   A: {
     title: "Treino A: Costas, Deltóide Posterior, Bíceps e Antebraço",
     exercises: [
-      { name: "Pulley frente", reps: 8, sets: 3, rest: "60s", gif: "/public/a-day/pulley-frente.gif" },
-      { name: "Pulley triângulo", reps: 8, sets: 2, rest: "60s", gif: "/public/a-day/pulley-triangulo.gif" },
-      { name: "Remada pronada", reps: 8, sets: 2, rest: "60s", gif: "/public/a-day/remada-pronada.gif" },
-      { name: "Deltóide posterior", reps: 8, sets: 3, rest: "60s", gif: "/public/a-day/deltoide-posterior.gif" },
-      { name: "Rosca scott", reps: 8, sets: 3, rest: "60s", gif: "/public/a-day/rosca-scott.gif" },
-      { name: "Rosca simultânea", reps: 8, sets: 3, rest: "60s", gif: "/public/a-day/rosca-simultanea.gif" },
-      { name: "Extensão Lombar", reps: 8, sets: 3, rest: "60s", gif: "/public/a-day/extensão lombar.gif" },
-      { name: "Extensão Lombar", reps: 8, sets: 3, rest: "60s", gif: "/public/a-day/extensão lombar.gif" },
+      { name: "Pulley frente", reps: 8, sets: 3, rest: 60, gif: "/public/a-day/pulley-frente.gif" },
+      { name: "Pulley triângulo", reps: 8, sets: 2, rest: 60, gif: "/public/a-day/pulley-triangulo.gif" },
+      { name: "Remada pronada", reps: 8, sets: 2, rest: 60, gif: "/public/a-day/remada-pronada.gif" },
+      { name: "Deltóide posterior", reps: 8, sets: 3, rest: 60, gif: "/public/a-day/deltoide-posterior.gif" },
+      { name: "Rosca scott", reps: 8, sets: 3, rest: 60, gif: "/public/a-day/rosca-scott.gif" },
+      { name: "Rosca simultânea", reps: 8, sets: 3, rest: 60, gif: "/public/a-day/rosca-simultanea.gif" },
+      { name: "Extensão Lombar", reps: 8, sets: 3, rest: 60, gif: "/public/a-day/extensão lombar.gif" },
+      { name: "Extensão Lombar", reps: 8, sets: 3, rest: 60, gif: "/public/a-day/extensão lombar.gif" },
     ]
   },
   B: {
     title: "Treino B: Peitoral, Deltóide Anterior/Lateral, Tríceps e Abdômen",
     exercises: [
-      { name: "Supino reto", reps: 8, sets: 3, rest: "60s", gif: "/public/b-day/supino-reto.jfif" },
-      { name: "Supino inclinado", reps: 8, sets: 2, rest: "60s", gif: "/public/b-day/supino-inclinado.gif" },
-      { name: "Crucifixo cabos", reps: 8, sets: 2, rest: "60s", gif: "/public/b-day/crucifixo-cabos.gif" },
-      { name: "Elevação lateral", reps: 8, sets: 3, rest: "60s", gif: "/public/b-day/elevação-lateral.webp" },
-      { name: "Triceps testa", reps: 8, sets: 2, rest: "60s", gif: "/public/b-day/triceps-testa.gif" },
-      { name: "Triceps pulley", reps: 8, sets: 2, rest: "60s", gif: "/public/b-day/triceps-pulley.gif" },
-      { name: "Abdominal infra", reps: 8, sets: 3, rest: "60s", gif: "/public/b-day/abdominal-infra.gif" },
+      { name: "Supino reto", reps: 8, sets: 3, rest: 60, gif: "/public/b-day/supino-reto.jfif" },
+      { name: "Supino inclinado", reps: 8, sets: 2, rest: 60, gif: "/public/b-day/supino-inclinado.gif" },
+      { name: "Crucifixo cabos", reps: 8, sets: 2, rest: 60, gif: "/public/b-day/crucifixo-cabos.gif" },
+      { name: "Elevação lateral", reps: 8, sets: 3, rest: 60, gif: "/public/b-day/elevação-lateral.webp" },
+      { name: "Triceps testa", reps: 8, sets: 2, rest: 60, gif: "/public/b-day/triceps-testa.gif" },
+      { name: "Triceps pulley", reps: 8, sets: 2, rest: 60, gif: "/public/b-day/triceps-pulley.gif" },
+      { name: "Abdominal infra", reps: 8, sets: 3, rest: 60, gif: "/public/b-day/abdominal-infra.gif" },
     ]
   },
   C: {
     title: "Treino C: Quadríceps, Isquiotibiais e Panturrilhas",
     exercises: [
-      { name: "Agachamento", reps: 10, sets: 3, rest: "180s", gif: "/public/c-day/agachamento.gif" },
-      { name: "Leg press", reps: 10, sets: 2, rest: "180s", gif: "/public/c-day/leg-press.gif" },
-      { name: "Agachamento hack", reps: 10, sets: 2, rest: "180s", gif: "/public/c-day/agachamento-hack.gif" },
-      { name: "Mesa flexora", reps: 10, sets: 3, rest: "40s", gif: "/public/c-day/mesa-flexora.gif" },
-      { name: "Elevação de panturrilha", reps: 10, sets: 3, rest: "40s", gif: "/public/c-day/elevação-de-panturrilha.gif" },
-      { name: "Panturrilha em pé", reps: 10, sets: 3, rest: "40s", gif: "/public/c-day/panturrilha-em-pe.gif" },
+      { name: "Agachamento", reps: 10, sets: 3, rest: 180, gif: "/public/c-day/agachamento.gif" },
+      { name: "Leg press", reps: 10, sets: 2, rest: 180, gif: "/public/c-day/leg-press.gif" },
+      { name: "Agachamento hack", reps: 10, sets: 2, rest: 180, gif: "/public/c-day/agachamento-hack.gif" },
+      { name: "Mesa flexora", reps: 10, sets: 3, rest: 40, gif: "/public/c-day/mesa-flexora.gif" },
+      { name: "Elevação de panturrilha", reps: 10, sets: 3, rest: 40, gif: "/public/c-day/elevação-de-panturrilha.gif" },
+      { name: "Panturrilha em pé", reps: 10, sets: 3, rest: 40, gif: "/public/c-day/panturrilha-em-pe.gif" },
     ]
   }
 };
 
-let currentDay = null;
-let currentExerciseIndex = 0;
-let progress = {};
+// ====== Estado e persistência ======
+const STORAGE_KEY = 'treinoABC.v3';
+let state = loadState();
 
-function selectDay(day) {
-  currentDay = day;
-  currentExerciseIndex = 0;
-  progress = {};
-  PROGRAM[day].exercises.forEach((_, i) => progress[i] = 0);
-  renderWorkout();
+function defaultState(){
+  return {
+    byDay: {
+      A: { currentIndex: 0, seriesDone: Array(PROGRAM.A.exercises.length).fill(0), cooldownEnd: null, awaitingContinueIndex: null, completed:false },
+      B: { currentIndex: 0, seriesDone: Array(PROGRAM.B.exercises.length).fill(0), cooldownEnd: null, awaitingContinueIndex: null, completed:false },
+      C: { currentIndex: 0, seriesDone: Array(PROGRAM.C.exercises.length).fill(0), cooldownEnd: null, awaitingContinueIndex: null, completed:false }
+    },
+    currentDay: null
+  };
 }
+function loadState(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){console.warn('load error',e);} return defaultState(); }
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){console.warn('save error',e);} }
 
-function addSeries() {
-  const ex = PROGRAM[currentDay].exercises[currentExerciseIndex];
-  if(progress[currentExerciseIndex] < ex.sets) {
-    progress[currentExerciseIndex]++;
-    renderWorkout();
-  } else if(currentExerciseIndex < PROGRAM[currentDay].exercises.length - 1) {
-    currentExerciseIndex++;
-    renderWorkout();
+// ====== Utils ======
+function fmtSeconds(s){ const mm = Math.floor(s/60); const ss = s%60; return `${mm}:${ss.toString().padStart(2,'0')}`; }
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+let timerInterval = null;
+
+// ====== UI ======
+function selectDay(d){ state.currentDay = d; saveState(); render(); }
+
+function render(){
+  const root = document.getElementById('workout');
+  const day = state.currentDay;
+  if(!day){ root.innerHTML = `<div class="card center"><div class="small">Escolha um dia para começar</div></div>`; return; }
+
+  const prog = PROGRAM[day];
+  const ds = state.byDay[day];
+  const idx = clamp(ds.currentIndex, 0, prog.exercises.length-1);
+  const ex = prog.exercises[idx];
+  const done = ds.seriesDone[idx] || 0;
+
+  // compute progress
+  const totalExercises = prog.exercises.length;
+  const completedExercises = prog.exercises.reduce((acc,_,i)=> acc + (ds.seriesDone[i] >= prog.exercises[i].sets ? 1:0), 0);
+
+  // cooldown
+  const now = Date.now();
+  let cooldownRemaining = 0;
+  if(ds.cooldownEnd && ds.cooldownEnd > now) cooldownRemaining = Math.ceil((ds.cooldownEnd - now)/1000);
+
+  // top card
+  let html = `<div class="card">`;
+  html += `<div class="title">${prog.title}</div>`;
+  html += `<div class="meta">Exercícios completos: ${completedExercises} / ${totalExercises}</div>`;
+
+  if(completedExercises >= totalExercises){
+    html += `<div class="center small" style="margin:12px 0">✅ Treino finalizado</div>`;
+    html += `<div class="controls"><button class="btn" onclick="confirmResetDay('${day}')">Resetar treino</button></div>`;
+    html += `</div>`;
+    root.innerHTML = html; return;
   }
+
+  html += `<div><strong>Exercício atual:</strong> ${ex.name}</div>`;
+  html += `<div class="small">${ex.reps} repetições • ${ex.sets} séries</div>`;
+  html += `<div class="small">Séries feitas: ${done} / ${ex.sets}</div>`;
+  html += `<img src="${ex.gif}" alt="${ex.name}" class="exercise-gif"/>`;
+
+  // cooldown UI and buttons logic
+  // if awaitingContinue is this index
+  const awaiting = ds.awaitingContinueIndex === idx;
+
+  if(cooldownRemaining > 0){
+    const pct = clamp((cooldownRemaining / ex.rest) * 100, 0, 100);
+    html += `<div style="margin-top:8px"><div class="small">Descanso: ${fmtSeconds(cooldownRemaining)} restante</div><div class="progress-bar"><i style="width:${pct}%"></i></div></div>`;
+    html += `<div class="controls"><button class="btn" disabled>+1 série</button><button class="btn secondary" onclick="confirmIgnoreCooldown('${day}',${idx})">Ignorar descanso</button></div>`;
+  } else if(awaiting){
+    // cooldown finished and waiting for user to continue
+    html += `<div class="small" style="margin-top:8px">Descanso finalizado — pressione Continuar para seguir</div>`;
+    html += `<div class="controls"><button class="btn" onclick="continueAfterCooldown('${day}',${idx})">Continuar</button><button class="btn secondary" onclick="confirmIgnoreCooldown('${day}',${idx})">Ignorar descanso</button></div>`;
+  } else {
+    // normal state: can add a series
+    html += `<div class="controls"><button class="btn" onclick="handleAddSeries()">+1 série</button><button class="btn secondary" onclick="confirmSkipExercise('${day}',${idx})">Pular</button></div>`;
+  }
+
+  html += `<div style="display:flex;width:100%;margin-top:8px"><button class="btn secondary" onclick="confirmResetDay('${day}')">Resetar treino desta semana</button></div>`;
+  html += `</div>`;
+
+  // upcoming
+  const upcoming = prog.exercises.slice(idx+1);
+  html += `<div class="card"><div class="title">Próximos exercícios</div><ul class="list">`;
+  if(upcoming.length === 0) html += `<li>Fim do treino</li>`;
+  else upcoming.forEach(e=> html += `<li>${e.name} — ${e.sets}x${e.reps} • descanso ${e.rest}s</li>`);
+  html += `</ul></div>`;
+
+  root.innerHTML = html;
+
+  // start interval if cooldown active
+  startCooldownInterval();
 }
 
-function renderWorkout() {
-  if(!currentDay) return;
+function startCooldownInterval(){
+  stopCooldownInterval();
+  timerInterval = setInterval(()=>{
+    const day = state.currentDay; if(!day) return;
+    const ds = state.byDay[day]; if(!ds) return;
+    if(ds.cooldownEnd && ds.cooldownEnd > Date.now()){ render(); }
+    else if(ds.cooldownEnd && ds.cooldownEnd <= Date.now()){
+      // cooldown finished: clear cooldownEnd but keep awaitingContinueIndex so user must press "Continuar"
+      ds.cooldownEnd = null; // keep awaitingContinueIndex as the index to continue
+      saveState(); render(); stopCooldownInterval();
+    }
+  }, 250);
+}
+function stopCooldownInterval(){ if(timerInterval){ clearInterval(timerInterval); timerInterval = null; } }
 
-  const day = PROGRAM[currentDay];
-  const ex = day.exercises[currentExerciseIndex];
+// ====== Actions ======
+function handleAddSeries(){
+  const day = state.currentDay; if(!day) return;
+  const ds = state.byDay[day]; const idx = ds.currentIndex; const ex = PROGRAM[day].exercises[idx];
+  // start cooldown after marking the set
+  ds.seriesDone[idx] = (ds.seriesDone[idx] || 0) + 1;
+  ds.awaitingContinueIndex = idx; // wait until cooldown finishes and user presses continue
+  ds.cooldownEnd = Date.now() + ex.rest * 1000;
+  saveState(); render();
+}
 
-  const nextExercises = day.exercises.slice(currentExerciseIndex + 1);
+function continueAfterCooldown(day, idx){
+  const ds = state.byDay[day];
+  if(!ds) return;
+  // clear awaiting flag
+  ds.awaitingContinueIndex = null;
+  ds.cooldownEnd = null;
+  // if exercise finished, advance
+  if(ds.seriesDone[idx] >= PROGRAM[day].exercises[idx].sets){
+    if(idx < PROGRAM[day].exercises.length - 1){ ds.currentIndex = idx + 1; }
+    else { ds.completed = true; }
+  }
+  saveState(); render();
+}
 
-  document.getElementById("workout").innerHTML = `
-    <div class="card">
-      <h2>${day.title}</h2>
-      <p><b>Exercício atual:</b> ${ex.name}</p>
-      <p>${ex.reps} repetições | ${ex.sets} séries | Descanso: ${ex.rest}</p>
-      <p class="progress">Séries atual: ${progress[currentExerciseIndex] || 1} / ${ex.sets}</p>
-      <img src="${ex.gif}" alt="${ex.name}" class="exercise-gif"/>
-      <button class="btn" onclick="addSeries()">+1 série</button>
-    </div>
-    <div class="card">
-      <h2>Próximos exercícios</h2>
-      <ul class="next-list">
-        ${nextExercises.map(e => `<li>${e.name} (${e.sets}x${e.reps})</li>`).join("") || "<li>Fim do treino</li>"}
-      </ul>
+function confirmIgnoreCooldown(day, idx){
+  showModal({ title: 'Ignorar descanso', html: `<p>Deseja realmente ignorar o descanso e continuar agora? Isso pode afetar sua recuperação.</p>`, onConfirm(){ ignoreCooldown(day, idx); } });
+}
+function ignoreCooldown(day, idx){
+  const ds = state.byDay[day]; if(!ds) return;
+  ds.cooldownEnd = null;
+  ds.awaitingContinueIndex = null;
+  // if all sets done, advance
+  if(ds.seriesDone[idx] >= PROGRAM[day].exercises[idx].sets){
+    if(idx < PROGRAM[day].exercises.length - 1) ds.currentIndex = idx + 1; else ds.completed = true;
+  }
+  saveState(); render();
+}
+
+function confirmSkipExercise(day, idx){
+  showModal({ title: 'Confirmar pular', html: `<p>Deseja pular o exercício “${PROGRAM[day].exercises[idx].name}”? Isso marcará como concluído.</p>`, onConfirm(){ skipExercise(day, idx); } });
+}
+function skipExercise(day, idx){
+  const ds = state.byDay[day]; ds.seriesDone[idx] = PROGRAM[day].exercises[idx].sets;
+  ds.cooldownEnd = null; ds.awaitingContinueIndex = null;
+  if(idx < PROGRAM[day].exercises.length - 1) ds.currentIndex = idx + 1; else ds.completed = true;
+  saveState(); render();
+}
+
+function confirmResetDay(day){
+  showModal({ title: 'Resetar treino', html: '<p>Tem certeza que deseja resetar o progresso deste dia?</p>', onConfirm(){ resetDay(day); } });
+}
+function resetDay(day){ state.byDay[day] = { currentIndex: 0, seriesDone: Array(PROGRAM[day].exercises.length).fill(0), cooldownEnd: null, awaitingContinueIndex: null, completed:false }; saveState(); render(); }
+
+// ====== Modal ======
+function showModal({title, html, onConfirm}){
+  const root = document.getElementById('modalRoot'); root.style.display = 'block';
+  root.innerHTML = `
+    <div class="overlay">
+      <div class="modal">
+        <div style="font-weight:700;margin-bottom:8px">${title}</div>
+        <div class="small" style="margin-bottom:12px">${html}</div>
+        <div class="row">
+          <button class="btn secondary" onclick="closeModal()">Cancelar</button>
+          <button class="btn danger" id="modalConfirmBtn">Confirmar</button>
+        </div>
+      </div>
     </div>
   `;
+  document.getElementById('modalConfirmBtn').onclick = ()=>{ closeModal(); onConfirm && onConfirm(); };
 }
+function closeModal(){ const root = document.getElementById('modalRoot'); root.style.display='none'; root.innerHTML=''; }
+
+// ====== Boot ======
+(function boot(){
+  if(!state) state = defaultState();
+  // if a cooldown was active but expired while away, clear cooldown but keep awaitingContinueIndex so user must continue
+  if(state.currentDay){
+    const d = state.byDay[state.currentDay];
+    if(d && d.cooldownEnd && d.cooldownEnd <= Date.now()){ d.cooldownEnd = null; /* awaitingContinueIndex kept */ saveState(); }
+    if(d && d.cooldownEnd && d.cooldownEnd > Date.now()) startCooldownInterval();
+  }
+  render();
+})();
+
+window._treino = { state, PROGRAM, saveState, resetDay };
 </script>
 </body>
 </html>
